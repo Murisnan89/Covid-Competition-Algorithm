@@ -1,0 +1,28 @@
+Time Complexity Analysis of ACO Algorithm
+
+Ø Iteration Ants (While Loop):
+- Number of iterations: 'max_iter' = O(max_Iter)
+Ø Matrix Initialisation:
+- Initialise the matrices 'tau' and 'eta' with size 'dim*dim' = O(dim2)
+Ø Ants Iteration (first for loop):
+- Number of iterations : 'N' (Number of Ants Population)
+- Time complexity in the first for loop:
+- Selection of 'num_feat' : O (1)
+- Initialise 'X(I,1)': O (1)
+- Iteration builds the tour: O (num_feat)
+- Time complexity of first for loop = O(N*num_feat)
+Ø Ants iteration (second for loop):
+- Number of iterations :'N'
+- Time complexity in the second for loop:
+- Transformation to binary form 'X-bin': O(dim)
+- Time complexity of second for loop = O(N*dim)
+Ø Fitness Evaluation and Global Update:
+- Fitness evaluation for each ant: O(N)
+- Global Update: O(N)
+Ø Pheromone Update:
+- Pheromone update on 'tauK' and 'tauG' = O(N*dim)
+Ø Pheromone Evaporation:
+- Pheromone evaporation on 'tau' matrix = O(dim2)
+
+Total time complexity = O( max_Iter) + O(dim2) + O(N*num_feat) + O(N*dim) + O(N) + O(N*dim) + O(dim2)
+Simplified = O(dim2+  max_iter + N*num_feat + N*dim)
