@@ -1,0 +1,12 @@
+Time Complexity Analysis of PSO Algorithm
+
+Ø Population Initialisation (lines 13-22):
+- Loop to initialise particle position = O(N*dim)
+Ø Initial Fitness Evaluation (lines 24-29):
+- The loop for fitness evaluation takes O(N) time .
+Ø Iteration (lines 31-59):
+- The main PSO iteration loop takes O(max_Iter) time.
+- Inside, there is a loop for each particle (lines 33-58).
+- Each particle iteration involves simple mathematical operations and fitness evaluation, which has a time complexity of O(dim)
+
+Total time complexity = O(N*dim*max_Iter)
