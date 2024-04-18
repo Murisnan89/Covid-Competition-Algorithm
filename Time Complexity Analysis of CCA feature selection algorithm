@@ -1,0 +1,20 @@
+Time Complexity Analysis of CCA feature selection algorithm
+
+Ø Population Initialisation (lines 14-24):
+- The first loop (line 14) has time complexity = O(nPop), where nPop is the population size.
+- The second loop (lines 17-23) has time complexity = O(D) , where D is the dimension value of the feature.
+- Thus, the total time complexity of population initialisation is = O(nPop * D ).
+Ø Evaluation and Selection of the Best Solution (lines 25-36):
+- This loop (lines 25-36) has a time complexity = O(nPop), where nPop is the population size.
+- So, the time complexity of solution evaluation is = O(nPop).
+Ø Virus Replication Phase (lines 35-114):
+- The parameter-dependent main loop(MaxIt) has a time complexity of O(MaxIt). Where MaxIt is the number of iterations. Inside the main loop, there are several operations with varying time complexity, it is estimated that the time complexity of the Virus Replication Phase part is = O (MaxIt * (nPop + nPop*D)).
+Ø Cost Evaluation for New Population (lines 98-105):
+- Loop to evaluate the cost for the new population generated, with complexity O(nPop).
+Ø Mutation and Evaluation of New Population (lines 108-123):
+- The last loop for mutation and evaluation of the new population has a complexity of O(nPop).
+
+Total time complexity = O(nPop*D ) + O (nPop) + O (MaxIt*(nPop + nPop*D) + O (nPop) + O(nPop).
+simplified to = O(nPop*D) + O(MaxIt*nPop*D)
+              = O(MaxIt*nPop*D)
+In this simplification, we focus on the dominant term and ignore the constant value.
