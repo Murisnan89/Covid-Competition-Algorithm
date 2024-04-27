@@ -10,4 +10,4 @@ Time Complexity Analysis of PSO Algorithm
 - Within the particle loops, there are operations with complexity O(1) and O(dim).
 - Thus, overall, the time complexity of the algorithm is mainly determined by the maximum number of iterations and the size of the feature dimension (dim), and is expressed as O(max_Iter * N * dim2).
 
-Total time complexity = O(dim2* N * max_Iter)
+Total time complexity = O(dim^2* N * max_Iter)
