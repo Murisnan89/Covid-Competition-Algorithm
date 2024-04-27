@@ -25,4 +25,4 @@ Time Complexity Analysis of ACO Algorithm
 - Pheromone evaporation on 'tau' matrix = O(dim2)
 
 Total time complexity = O( max_Iter) + O(dim2) + O(N*num_feat) + O(N*dim) + O(N) + O(N*dim) + O(dim2)
-Simplified = O(dim2+  max_iter + N*num_feat + N*dim)
+Simplified = O(dim^2 + max_iter + N*num_feat + N*dim)
