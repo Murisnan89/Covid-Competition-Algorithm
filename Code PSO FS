@@ -1,67 +1,60 @@
-function [sFeat,Sf,Nf,curve] = PSO(feat,label,N,max_Iter,c1,c2,w,HO)
+function [sFeat,Sf,Nf,curve,pred,accuracy,precision,recall] = jPSO(feat,label,N,max_Iter,c1,c2,w,HO)
 % Parameters
-lb    = 0;
-ub    = 1; 
-thres = 0.5;
 
-% Objective function
-fun = @jFitnessFunction; 
-% Number of dimensions
-dim = size(feat,2); 
-% Initial 
-X   = zeros(N,dim);
-V   = zeros(N,dim); 
+lb    = 0;           % O(1)
+ub    = 1;           % O(1)
+thres = 0.5;         % O(1)
+tic;                 % O(1)
+
+fun = @jFitnessFunction;  % O(1)
+
+dim = size(feat,2);  % O(1)
+
+X   = zeros(dim,dim);  % O(dim^2)
+V   = zeros(dim,dim);  % O(dim^2)
 for i = 1:N
   for d = 1:dim
-    X(i,d) = lb + (ub - lb) * rand();
+    X(i,d) = lb + (ub - lb) * rand();  % O(1)
   end
 end  
-% Fitness
-fit  = zeros(1,N); 
-fitG = inf;
+
+fit  = zeros(1,N);  % O(N)
+fitG = inf;          % O(1)
 for i = 1:N 
-  fit(i) = fun(feat,label,(X(i,:) > thres),HO); 
-  % Gbest update
+  fit(i) = fun(feat,label,(X(i,:) > thres),HO);  % O(1)
   if fit(i) < fitG
-    Xgb  = X(i,:); 
-    fitG = fit(i);
+    Xgb  = X(i,:);  % O(dim)
+    fitG = fit(i);   % O(1)
   end
 end
-% PBest
-Xpb  = X; 
-fitP = fit;
-% Pre
-curve = inf;
-t = 1;  
-% Iterations
-while t <= max_Iter
+
+Xpb  = X;   % O(dim * N)
+fitP = fit; % O(N)
+
+curve = inf;  % O(1)
+t = 1;        % O(1)
+
+while t <= max_Iter  % Iterasi sebanyak max_Iter kali
   for i = 1:N
     for d = 1:dim
-      r1 = rand();
-      r2 = rand();
-      % Velocity update 
-      V(i,d) = w * V(i,d) + c1 * r1 * (Xpb(i,d) - X(i,d)) + ...
-        c2 * r2 * (Xgb(d) - X(i,d)); 
-      % Position update 
-      X(i,d) = X(i,d) + V(i,d);
+      r1 = rand();  % O(1)
+      r2 = rand();  % O(1)
+      V(i,d) = w * V(i,d) + c1 * r1 * (Xpb(i,d) - X(i,d)) + c2 * r2 * (Xgb(d) - X(i,d));  % O(1)
+      X(i,d) = X(i,d) + V(i,d);  % O(1)
     end
-    % Boundary
-    XB = X(i,:); XB(XB > ub) = ub; XB(XB < lb) = lb; 
-    X(i,:) = XB;
-    % Fitness
-    fit(i) = fun(feat,label,(X(i,:) > thres),HO);
-    % Pbest update
+    XB = X(i,:); XB(XB > ub) = ub; XB(XB < lb) = lb;  % O(dim)
+    X(i,:) = XB;  % O(dim)
+    fit(i) = fun(feat,label,(X(i,:) > thres),HO);  % O(1)
     if fit(i) < fitP(i)
-      Xpb(i,:) = X(i,:); 
-      fitP(i)  = fit(i);
+      Xpb(i,:) = X(i,:);  % O(dim)
+      fitP(i)  = fit(i);  % O(1)
     end
-    % Gbest update
     if fitP(i) < fitG
-      Xgb  = Xpb(i,:);
-      fitG = fitP(i);
+      Xgb  = Xpb(i,:);  % O(dim)
+      fitG = fitP(i);   % O(1)
     end
   end
-  curve(t) = fitG;
-  fprintf('\nIteration %d GBest (PSO)= %f',t,curve(t))
-  t = t + 1;
+  curve(t) = fitG;  % O(1)
+  fprintf('\nIteration %d GBest (PSO)= %f',t,curve(t))  % O(1)
+  t = t + 1;  % O(1)
 end
