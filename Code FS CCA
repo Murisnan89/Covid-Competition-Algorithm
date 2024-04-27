@@ -1,137 +1,125 @@
-function [sFeat,Sf,Nf,f1score] =COVIDOA-C(feat,label,HO,nPop,MaxIt,minVal,maxVal,D,CostFunction,MR,CR,shifttingNo,numOfSubprotiens)
+function [sFeat, Sf, Nf, f1score] = HCOVIDOARGAknn(feat, label, HO, nPop, MaxIt, minVal, maxVal, D, CostFunction, MR, CR, shifttingNo, numOfSubprotiens)
 
-VarMin =zeros(1,D).*minVal;
-VarMax =ones(1,D).*maxVal;
-empty_individual.Position=[];
-empty_individual.Cost=[];
-pop=repmat(empty_individual,nPop,1);
-alpha = rand(nPop, D);
-fitness = @FitnessFunction;
-D = size(feat,2); 
-X = zeros(nPop,D);
+    VarMin = zeros(1, D) .* minVal;  % O(D)
+    VarMax = ones(1, D) .* maxVal;   % O(D)
+    empty_individual.Position = [];  % O(1)
+    empty_individual.Cost = [];      % O(1)
+    pop = repmat(empty_individual, nPop, 1);  % O(nPop)
+    alpha = rand(nPop, D);           % O(nPop * D)
+    fitness = @FitnessFunction;      % O(1)
+    D = size(feat, 2);               % O(1)
+    X = zeros(nPop, D);              % O(nPop * D)
 
-%Initiale Population
-for i = 1:nPop
-    pop(i).Position = minVal + alpha(i,:) .* (maxVal - minVal);
-    for d = 1:D
-      pop(i).Position = 1./(1 + exp(-pop(i).Position));
-      if pop(i).Position > rand()
-         X(i,d)=1;
-      else
-         X(i,d)=0;
-      end
-    end   
-end
-
-bestsol.Position=zeros(1,nPop);
-bestsol.Cost = inf;
-for i = 1:nPop
-    % Evaluate Solution
-    pop(i).Cost = CostFunction(pop(i).Position);
-    pop(i).Cost = fitness(feat,label,X(i,:),HO);
-    if pop(i).Cost < bestsol.Cost
-        bestsol.Cost = pop(i).Cost;
-        bestsol.Position=pop(i).Position;
-        Xbestsol = X(i,:);
-    end
-end
-
-CR   = round(CR * nPop); 
-X1   = zeros(CR, D);
-X2   = zeros(CR, D);
-curve = nan(MaxIt, 1);
-%--------- main loop ------------------------------------
-for it = 1:MaxIt
-    %%--------------------------------------------------------
-    %% virus replication phase through frameshifting technique
-    %%--------------------------------------------------------
-    %%---------- roulette wheel selection----------
-    c = [pop.Cost];
-    avgc = mean(c);
-    if avgc ~= 0
-        c = c/avgc;
-    end
-    probs = exp(nPop*c);
-    x = zeros(nPop,D);
-    for k=1:nPop
-        parent = pop(RouletteWheelSelection(probs));
-        parent.Position = max(parent.Position, VarMin);
-        parent.Position = min(parent.Position, VarMax);
-        %--------- frameshifting ------------------
-        x(k,:)=parent.Position;
-        for t=1:numOfSubprotiens
-            for i=1:D-shifttingNo
-                x(k,i)=x(k,i+shifttingNo); 
+    % Inisialisasi Populasi
+    for i = 1:nPop
+        pop(i).Position = minVal + alpha(i, :) .* (maxVal - minVal);  % O(D)
+        for d = 1:D
+            pop(i).Position = 1./(1 + exp(-pop(i).Position));  % O(D)
+            if pop(i).Position > rand()  % O(1)
+                X(i, d) = 1;  % O(1)
+            else
+                X(i, d) = 0;  % O(1)
             end
-             r=rand();
-             x(k,:)=[x(k,1:D-shifttingNo) r]; 
         end
-        %%---- apply Competition Strategy from RGA----
-        for i=1:CR
-            k1 = RouletteWheelSelection(probs);
-            k2 = RouletteWheelSelection(probs);
-            P1 = X(k1,:);
-            P2 = X(k2,:);
-            ind = randi([1, nPop-1]);
-            X1(i,:) = [P1(1 : ind), P2(ind + 1 : D)]; 
-            X2(i,:) = [P2(1 : ind), P1(ind + 1 : D)];
+    end
+
+    bestsol.Position = zeros(1, nPop);  % O(nPop)
+    bestsol.Cost = inf;  % O(1)
+    for i = 1:nPop
+        pop(i).Cost = CostFunction(pop(i).Position);  % O(1)
+        pop(i).Cost = fitness(feat, label, X(i, :), HO);  % O(1)
+        if pop(i).Cost < bestsol.Cost  % O(1)
+            bestsol.Cost = pop(i).Cost;  % O(1)
+            bestsol.Position = pop(i).Position;  % O(D)
+            Xbestsol = X(i, :);  % O(D)
         end
-        Xnewvirus = [X1; X2]; 
-        for i = 1 : 2 * CR
-            for d = 1:D
-                if rand() <= MR
-                    Xnewvirus(i,d) = 1 - Xnewvirus(i,d);
-                    Xbestsol  = Xnewvirus(i,:);
+    end
+
+    CR = round(CR * nPop);  % O(1)
+    X1 = zeros(CR, D);      % O(CR * D)
+    X2 = zeros(CR, D);      % O(CR * D)
+    curve = nan(MaxIt, 1);  % O(MaxIt)
+    
+    % Main Loop
+    for it = 1:MaxIt  % O(MaxIt)
+        % Virus Replication Phase
+        c = [pop.Cost];  % O(nPop)
+        avgc = mean(c);  % O(nPop)
+        if avgc ~= 0  % O(1)
+            c = c / avgc;  % O(nPop)
+        end
+        probs = exp(nPop * c);  % O(nPop)
+        x = zeros(nPop, D);  % O(nPop * D)
+        for k = 1:nPop  % O(nPop)
+            parent = pop(RouletteWheelSelection(probs));  % O(nPop)
+            parent.Position = max(parent.Position, VarMin);  % O(D)
+            parent.Position = min(parent.Position, VarMax);  % O(D)
+            x(k, :) = parent.Position;  % O(D)
+            for t = 1:numOfSubprotiens  % O(numOfSubprotiens)
+                for i = 1:D-shifttingNo  % O(D - shifttingNo)
+                    x(k, i) = x(k, i + shifttingNo);  % O(1)
+                end
+                r = rand();  % O(1)
+                x(k, :) = [x(k, 1:D - shifttingNo) r];  % O(D)
+            end
+            for i = 1:CR  % O(CR)
+                k1 = RouletteWheelSelection(probs);  % O(nPop)
+                k2 = RouletteWheelSelection(probs);  % O(nPop)
+                P1 = X(k1, :);  % O(D)
+                P2 = X(k2, :);  % O(D)
+                ind = randi([1, nPop - 1]);  % O(1)
+                X1(i, :) = [P1(1:ind), P2(ind + 1:D)];  % O(D)
+                X2(i, :) = [P2(1:ind), P1(ind + 1:D)];  % O(D)
+            end
+            Xnewvirus = [X1; X2];  % O(2 * CR * D)
+            for i = 1:2 * CR  % O(2 * CR)
+                for d = 1:D  % O(D)
+                    if rand() <= MR  % O(1)
+                        Xnewvirus(i, d) = 1 - Xnewvirus(i, d);  % O(1)
+                        Xbestsol = Xnewvirus(i, :);  % O(D)
+                    end
                 end
             end
+            subprotien = ones(nPop, D);  % O(nPop * D)
+            subprotien(i, :) = x(k, :);  % O(D)
+            Xnewvirus(i, :) = UniformCrossover(subprotien(1, :), subprotien(2, :));  % O(D)
+            Xnewvirus(i, :) = max(Xnewvirus(i, :), VarMin);  % O(D)
+            Xnewvirus(i, :) = min(Xnewvirus(i, :), VarMax);  % O(D)
         end
-        
-        %%---- apply uniform crossover between proteins to generate new solution
-        subprotien =ones(nPop,D);
-        subprotien(i,:) =x(k,:);
-        Xnewvirus =ones(nPop,D);
-        Xnewvirus(i,:)  =UniformCrossover(subprotien(1,:),subprotien(2,:));
-        Xnewvirus(i,:)  =max(Xnewvirus(i,:), VarMin);
-        Xnewvirus(i,:)  =min(Xnewvirus(i,:), VarMax);
-        
-    end
-    % ======== calculating the cost of the new population
-    for t=1:nPop
-        childcost=CostFunction(Xnewvirus(t,:));
-        %numofevaluaions=numofevaluaions+1;
-        if childcost < bestsol.Cost
-            bestsol.Position = Xnewvirus(t,:);
-            bestsol.Cost=childcost;
-        end
-    end
-    
-    newPop = repmat(empty_individual, nPop, 1);
-    % Mutation
-    for l=1:nPop
-        for k = 1: D
-            R = rand()< 0.5;
-            if R < MR
-                Xnewvirus(l,k)=minVal+rand*(maxVal-minVal);
+        for t = 1:nPop  % O(nPop)
+            childcost = CostFunction(Xnewvirus(t, :));  % O(1)
+            if childcost < bestsol.Cost  % O(1)
+                bestsol.Position = Xnewvirus(t, :);  % O(D)
+                bestsol.Cost = childcost;  % O(1)
             end
-            newPop(l).Position=Xnewvirus(l,:);
         end
-        newPop(l).Position = max(newPop(l).Position, VarMin);
-        newPop(l).Position = min(newPop(l).Position, VarMax);
-        newPop(l).Cost=CostFunction(newPop(l).Position);
-        if newPop(l).Cost < bestsol.Cost
-            bestsol.Position = newPop(l).Position;
-            bestsol.Cost=newPop(l).Cost;
+        newPop = repmat(empty_individual, nPop, 1);  % O(nPop)
+        % Mutation
+        for l = 1:nPop  % O(nPop)
+            for k = 1:D  % O(D)
+                R = rand() < 0.5;  % O(1)
+                if R < MR  % O(1)
+                    Xnewvirus(l, k) = minVal + rand * (maxVal - minVal);  % O(1)
+                end
+                newPop(l).Position = Xnewvirus(l, :);  % O(D)
+            end
+            newPop(l).Position = max(newPop(l).Position, VarMin);  % O(D)
+            newPop(l).Position = min(newPop(l).Position, VarMax);  % O(D)
+            newPop(l).Cost = CostFunction(newPop(l).Position);  % O(1)
+            if newPop(l).Cost < bestsol.Cost  % O(1)
+                bestsol.Position = newPop(l).Position;  % O(D)
+                bestsol.Cost = newPop(l).Cost;  % O(1)
+            end
         end
+        pop = SortPopulation([pop; newPop]);  % O((nPop + nPop) * log(nPop))
+        Pos = 1:D;  % O(D)
+        Sf = Pos(Xbestsol == 1);  % O(D)
+        Nf = length(Sf);  % O(1)
+        sFeat = feat(:, Sf);  % O(feat * Nf)
+        pop = pop(1:nPop);  % O(nPop)
+        curve(it) = bestsol.Cost;  % O(1)
+
+        % Display Iteration Information
+        disp(['Iteration ' num2str(it) ': Best Solution = ' num2str(curve(it))]);  % O(1)
     end
-    
-    pop   = SortPopulation([pop; newPop]);
-    Pos   = 1:d; 
-    Sf    = Pos(Xbestsol == 1); 
-    Nf    = length(Sf); 
-    sFeat = feat(:,Sf);
-    pop   = pop(1:nPop);
-    curve(it) = bestsol.Cost;
-    
-    % Display Iteration Information
-    disp(['Iteration ' num2str(it) ': Best Solution = ' num2str(curve(it))]);
 end
